@@ -2,10 +2,10 @@ version: '3'
 
 services:
   iptv4plex:
-    image: shuaiscott/iptv4plex
+    image: shuaiscott/iptv4plex:latest
     ports:
       - "6969:6969"
     environment:
-      - M3U8URLLIST='http://byuhd2-lh.akamaihd.net/i/byutvglobalhd2_live@103134/master.m3u8;http://iphone-streaming.ustream.tv/uhls/6540154/streams/live/iphone/playlist.m3u8'
-      - TUNERLIMITSLIST='3;3'
-      - XMLURLLIST=''
+      - M3U8URLLIST=http://byuhd2-lh.akamaihd.net/i/byutvglobalhd2_live@103134/master.m3u8;http://iphone-streaming.ustream.tv/uhls/6540154/streams/live/iphone/playlist.m3u8
+      - TUNERLIMITSLIST=3;3
+#      - XMLURLLIST=
