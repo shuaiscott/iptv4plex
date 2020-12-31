@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import logging
 import os
 import sys
@@ -49,8 +48,11 @@ from flask import Flask, redirect, abort, request, Response, send_from_directory
 
 app = Flask(__name__, static_url_path='')
 
-__version__ = 0.23
+__version__ = 0.32
 # Changelog
+# 0.32 - Updated readme, changed default port to 5004, added .sh installers.
+# 0.31 - Updated readme, added a channame encode for website.
+# 0.3 - Tuneer Limit correction to an integer
 # 0.23 - Added epg redirection detection
 # 0.22 - Added xtreame editor epg support and fallback for gzip attempt if normal fails.
 # 0.21 - Misc bug fixes
@@ -98,7 +100,7 @@ class channelinfo:
 
 # These are just defaults, place your settings in a file called proxysettings.json in the same directory
 LISTEN_IP = "127.0.0.1"
-LISTEN_PORT = 80
+LISTEN_PORT = 5004
 SERVER_HOST = "http://" + LISTEN_IP + ":" + str(LISTEN_PORT)
 M3U8URL = ''
 XMLURL = ''
@@ -420,7 +422,7 @@ def thread_updater():
 				os.mkdir('updates')
 			requests.urlretrieve(latestfile, os.path.join('updates', newfilename))
 
-			
+
 ############################################################
 # playlist tools
 ############################################################
@@ -473,7 +475,7 @@ def obtain_m3u8():
 		pickle.dump(chan_map, f)
 
 
-		
+
 def m3u8_merger(url, m3u8_number):
 	global chan_map, m3u8_playlist, group_list, temp_chan_map
 	if url != '':
@@ -539,8 +541,8 @@ def m3u8_merger(url, m3u8_number):
 
 
 def epg_status():
-	if os.path.isfile('./cache/combined.xml'):
-		existing = './cache/combined.xml'
+	if os.path.isfile('./cache/epg.xml'):
+		existing = './cache/epg.xml'
 		cur_utc_hr = datetime.utcnow().replace(microsecond=0, second=0, minute=0).hour
 		target_utc_hr = (cur_utc_hr // 3) * 3
 		target_utc_datetime = datetime.utcnow().replace(microsecond=0, second=0, minute=0, hour=target_utc_hr)
@@ -550,7 +552,7 @@ def epg_status():
 			logger.debug("Skipping download of epg")
 			return
 	obtain_epg()
-	
+
 def obtain_epg():
 	#clear epg file
 	f = open('./cache/epg.xml','w')
@@ -594,10 +596,10 @@ def xmltv_merger(xml_url):
 
 	for channel in source.iter('channel'):
 		treeroot.append(channel)
-		
+
 	for programme in source.iter('programme'):
 		treeroot.append(programme)
-		
+
 	tree.write('./cache/epg.xml')
 	with open('./cache/epg.xml', 'r+') as f:
 		content = f.read()
@@ -617,7 +619,7 @@ def discover(tunerLimit=6,tunerNumber=""):
 		'Manufacturer': 'Silicondust',
 		'ModelNumber': 'HDTC-2US',
 		'FirmwareName': 'hdhomeruntc_atsc',
-		'TunerCount': tunerLimit,
+		'TunerCount': int(tunerLimit),
 		'FirmwareVersion': '20150826',
 		'DeviceID': '12345678%s' % tunerNumber,
 		'DeviceAuth': 'test1234%s' % tunerNumber,
@@ -660,7 +662,7 @@ def device(tunerLimit=6, tunerNumber=""):
 		'Manufacturer': 'Silicondust',
 		'ModelNumber': 'HDTC-2US',
 		'FirmwareName': 'hdhomeruntc_atsc',
-		'TunerCount': tunerLimit,
+		'TunerCount': int(tunerLimit),
 		'FirmwareVersion': '20150826',
 		'DeviceID': '12345678%s' % tunerNumber,
 		'DeviceAuth': 'test1234%s' % tunerNumber,
@@ -718,7 +720,7 @@ def create_menu():
 		for i in chan_map['0']:
 			if i%3 == 1:
 				html.write("<tr>")
-			html.write(template.format(chan_map['0'][i].channum, chan_map['0'][i].channum, chan_map['0'][i].url,chan_map['0'][i].icon, chan_map['0'][i].channame, 'checked' if chan_map['0'][i].active else ''))
+			html.write(template.format(chan_map['0'][i].channum, chan_map['0'][i].channum, chan_map['0'][i].url,chan_map['0'][i].icon, chan_map['0'][i].channame.encode('utf-8'), 'checked' if chan_map['0'][i].active else ''))
 			if i%3 == 0:
 				html.write("</tr>")
 		html.write("</table><input type='submit' value='Submit'></form>")
@@ -848,8 +850,8 @@ def auto(request_file):
 	if request.args.get('url'):
 		logger.info("Piping custom URL")
 		url = request.args.get('url')
-		if '|' in url:
-			url = url.split('|')[0]
+	if '|' in url:
+		url = url.split('|')[0]
 	logger.debug(url)
 	import subprocess
 
@@ -915,7 +917,6 @@ if __name__ == "__main__":
 	print("Plex Live TV combined url is %s" % SERVER_HOST)
 	for i in M3U8URL.split(";"):
 		print("Plex Live TV single tuner url for %s is %s/%s" % (i, SERVER_HOST, M3U8URL.split(";").index(i)+1))
-	print("Donations: PayPal to vorghahn.sstv@gmail.com  or BTC - 19qvdk7JYgFruie73jE4VvW7ZJBv8uGtFb")
 	print("##############################################################\n")
 
 	if __version__ < latest_ver:
